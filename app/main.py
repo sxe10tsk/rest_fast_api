@@ -1,4 +1,6 @@
+from datetime import datetime
 from typing import List, Optional
+
 from fastapi import FastAPI, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
@@ -24,14 +26,28 @@ def create_advertisement(
 
 @app.get("/advertisement", response_model=List[schemas.AdvertisementOut])
 def search_advertisements(
-    title: Optional[str] = Query(None),
-    author: Optional[str] = Query(None),
+    title: Optional[str] = Query(None, description="Подстрока заголовка"),
+    description: Optional[str] = Query(None, description="Подстрока описания"),
+    author: Optional[str] = Query(None, description="Подстрока автора"),
     min_price: Optional[float] = Query(None, ge=0),
     max_price: Optional[float] = Query(None, ge=0),
+    created_from: Optional[datetime] = Query(
+        None, description="Начало диапазона даты создания (ISO 8601)"
+    ),
+    created_to: Optional[datetime] = Query(
+        None, description="Конец диапазона даты создания (ISO 8601)"
+    ),
     db: Session = Depends(get_db),
 ):
     return crud.search_advertisements(
-        db, title=title, author=author, min_price=min_price, max_price=max_price
+        db,
+        title=title,
+        description=description,
+        author=author,
+        min_price=min_price,
+        max_price=max_price,
+        created_from=created_from,
+        created_to=created_to,
     )
 
 

@@ -1,4 +1,5 @@
 from typing import Optional, List
+from datetime import datetime
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -41,17 +42,34 @@ def delete_advertisement(db: Session, adv_id: int) -> bool:
 def search_advertisements(
     db: Session,
     title: Optional[str] = None,
+    description: Optional[str] = None,
     author: Optional[str] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
+    created_from: Optional[datetime] = None,
+    created_to: Optional[datetime] = None,
 ) -> List[models.Advertisement]:
     query = db.query(models.Advertisement)
+
     if title:
         query = query.filter(models.Advertisement.title.ilike(f"%{title}%"))
+
+    if description:
+        query = query.filter(models.Advertisement.description.ilike(f"%{description}%"))
+
     if author:
         query = query.filter(models.Advertisement.author.ilike(f"%{author}%"))
+
     if min_price is not None:
         query = query.filter(models.Advertisement.price >= min_price)
+
     if max_price is not None:
         query = query.filter(models.Advertisement.price <= max_price)
+
+    if created_from is not None:
+        query = query.filter(models.Advertisement.created_at >= created_from)
+
+    if created_to is not None:
+        query = query.filter(models.Advertisement.created_at <= created_to)
+
     return query.order_by(models.Advertisement.created_at.desc()).all()
